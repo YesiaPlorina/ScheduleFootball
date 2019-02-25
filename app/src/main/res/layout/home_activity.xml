@@ -20,6 +20,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
+    <!-- frame layout digunakan sebagai container si fragment nya-->
     <FrameLayout
         android:id="@+id/container_fragment"
         android:layout_width="match_parent"

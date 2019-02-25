@@ -1,9 +1,8 @@
-package com.fiqri.haripertama.fragment.utama;
+package com.fiqri.haripertama.fragment;
 
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,21 +10,18 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ProgressBar;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import com.fiqri.haripertama.R;
 import com.fiqri.haripertama.adapter.MatchAdapter;
 import com.fiqri.haripertama.adapter.TeamsAdapter;
 import com.fiqri.haripertama.model.EventsItem;
-import com.fiqri.haripertama.model.ResponseTeams;
+import com.fiqri.haripertama.model.ResponseEvents;
 import com.fiqri.haripertama.model.TeamsItem;
 import com.fiqri.haripertama.restApi.ConfigRetrofit;
 
@@ -42,19 +38,19 @@ import retrofit2.Response;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class Teams extends Fragment {
+public class LastMatches extends Fragment {
 
-    Spinner spinnerTeam;
-    RecyclerView rvTeam;
+    RecyclerView recyclerviewMatches;
     SwipeRefreshLayout swipe;
+    Spinner spinnerMatch;
 
-    List<TeamsItem> data = new ArrayList<>();
-    TeamsAdapter adapter;
+
+    List<EventsItem> data = new ArrayList<>();
+    MatchAdapter adapter;
+    String penampung, id;
     LinearLayoutManager manager;
 
-    String penampung , id;
-
-    public Teams() {
+    public LastMatches() {
         // Required empty public constructor
     }
 
@@ -62,13 +58,21 @@ public class Teams extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_teams, container, false);
-//        unbinder = ButterKnife.bind(this, view);
-        rvTeam = view.findViewById(R.id.rv_team);
+        View view = inflater.inflate(R.layout.fragment_last_matches, container, false);
+        recyclerviewMatches = view.findViewById(R.id.recyclerview_matches);
         swipe = view.findViewById(R.id.swipe);
-        spinnerTeam = view.findViewById(R.id.spinner_team);
+        spinnerMatch = view.findViewById(R.id.spinner_match);
         initViews();
         return view;
+    }
+
+    private void initViews() {
+        adapter = new MatchAdapter(getActivity());
+        recyclerviewMatches.setLayoutManager(new LinearLayoutManager(getActivity()));
+        adapter.notifyDataSetChanged();
+        adapter.setEventsItemList(data);
+        recyclerviewMatches.setHasFixedSize(true);
+        recyclerviewMatches.setAdapter(adapter);
     }
 
     @Override
@@ -76,11 +80,11 @@ public class Teams extends Fragment {
         super.onActivityCreated(savedInstanceState);
 
         if (savedInstanceState != null) {
-            data = savedInstanceState.getParcelableArrayList("state");
-            adapter.setTeamsItemList(data);
-            rvTeam.setAdapter(adapter);
+            data = savedInstanceState.getParcelableArrayList("STATE_DATA");
+            adapter.setEventsItemList(data);
+            recyclerviewMatches.setAdapter(adapter);
         } else {
-            sendRequestAllTeams("4328");
+            sendRequestLastMatch("4328");
         }
 
         swipe.setColorScheme(
@@ -93,7 +97,7 @@ public class Teams extends Fragment {
                     @Override
                     public void run() {
                         swipe.setRefreshing(false);
-                        sendRequestAllTeams(id);
+                        sendRequestLastMatch(id);
                     }
                 }, 3000);
             }
@@ -103,35 +107,35 @@ public class Teams extends Fragment {
                 getActivity(), R.array.leagueArray, android.R.layout.simple_spinner_item);
 
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTeam.setAdapter(adapter);
+        spinnerMatch.setAdapter(adapter);
 
-        spinnerTeam.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+        spinnerMatch.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int index, long id) {
                 penampung = parent.getItemAtPosition(index).toString();
                 switch (penampung) {
                     case "English Premier League":
-                        sendRequestAllTeams("4328");
+                        sendRequestLastMatch("4328");
                         break;
 
                     case "German Bundesliga":
-                        sendRequestAllTeams("4331");
+                        sendRequestLastMatch("4331");
                         break;
 
                     case "Italian Serie A":
-                        sendRequestAllTeams("4332");
+                        sendRequestLastMatch("4332");
                         break;
 
                     case "French Ligue 1":
-                        sendRequestAllTeams("4334");
+                        sendRequestLastMatch("4334");
                         break;
 
                     case "Spanish La Liga":
-                        sendRequestAllTeams("4335");
+                        sendRequestLastMatch("4335");
                         break;
 
                     case "Netherlands Eredivisie":
-                        sendRequestAllTeams("4337");
+                        sendRequestLastMatch("4337");
                         break;
                 }
             }
@@ -143,44 +147,34 @@ public class Teams extends Fragment {
         });
     }
 
-    private void sendRequestAllTeams(String id) {
-        ConfigRetrofit.getInstanc().getAllTeams(id).enqueue(new Callback<ResponseTeams>() {
+    private void sendRequestLastMatch(String id) {
+        ConfigRetrofit.getInstanc().getMatchPastLeague(id).enqueue(new Callback<ResponseEvents>() {
             @Override
-            public void onResponse(Call<ResponseTeams> call, Response<ResponseTeams> response) {
+            public void onResponse(Call<ResponseEvents> call, Response<ResponseEvents> response) {
 
                 if (response.isSuccessful()) {
-                    List<TeamsItem> data = response.body().getTeams();
+                    data = response.body().getEvents();
                     setUpList(data);
                 }
             }
 
             @Override
-            public void onFailure(Call<ResponseTeams> call, Throwable t) {
-                Toast.makeText(getActivity(), t.getMessage(), Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<ResponseEvents> call, Throwable t) {
+
             }
         });
     }
 
-    private void setUpList(List<TeamsItem> data) {
-        adapter = new TeamsAdapter(getActivity());
+    private void setUpList(List<EventsItem> data) {
+        adapter = new MatchAdapter(getActivity());
         adapter.notifyDataSetChanged();
-        adapter.setTeamsItemList(data);
-        rvTeam.setAdapter(adapter);
-    }
-
-    private void initViews() {
-        adapter = new TeamsAdapter(getActivity());
-        adapter.setTeamsItemList(data);
-        adapter.notifyDataSetChanged();
-        rvTeam.setLayoutManager(new GridLayoutManager(getActivity(), 2));
-        rvTeam.setHasFixedSize(true);
-        rvTeam.setAdapter(adapter);
+        adapter.setEventsItemList(data);
+        recyclerviewMatches.setAdapter(adapter);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList("state", new ArrayList<Parcelable>(adapter.getTeamsItemList()));
+        outState.putParcelableArrayList("STATE_DATA", new ArrayList<>(adapter.getEventsItemList()));
     }
-
 }

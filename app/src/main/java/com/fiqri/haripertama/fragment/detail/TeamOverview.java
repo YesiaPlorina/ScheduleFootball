@@ -1,4 +1,4 @@
-package com.fiqri.haripertama.fragment.utama;
+package com.fiqri.haripertama.fragment.detail;
 
 
 import android.os.Bundle;
@@ -12,10 +12,10 @@ import com.fiqri.haripertama.R;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class LastMatches extends Fragment {
+public class TeamOverview extends Fragment {
 
 
-    public LastMatches() {
+    public TeamOverview() {
         // Required empty public constructor
     }
 
@@ -24,7 +24,7 @@ public class LastMatches extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_last_matches, container, false);
+        return inflater.inflate(R.layout.fragment_team_overview, container, false);
     }
 
 }

@@ -9,20 +9,23 @@ import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
 
-import com.fiqri.haripertama.fragment.Matches;
+
+import com.fiqri.haripertama.fragment.LastMatches;
+import com.fiqri.haripertama.fragment.NextMatches;
 import com.fiqri.haripertama.fragment.utama.Favorites;
-import com.fiqri.haripertama.fragment.utama.NextMatches;
 import com.fiqri.haripertama.fragment.utama.Teams;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity{
 
     @BindView(R.id.toolbar_main)
     Toolbar toolbar;
+
     @BindView(R.id.container_fragment)
     FrameLayout containerFragment;
+
     @BindView(R.id.nav_bottom)
     BottomNavigationView navBottom;
 
@@ -32,39 +35,44 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.home_activity);
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
-        Fragment fragment = new Matches();
+
+        Fragment fragment = new LastMatches();
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.container_fragment, fragment).commit();
         }
-        navBottom.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-    }
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+        navBottom.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
+            @Override
+            public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+                    Fragment fragment;
+                    switch (menuItem.getItemId()) {
+                        case R.id.nav_last:
+                            fragment = new LastMatches();
+                            fragmentTransition(fragment);
+                            return true;
 
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                        case R.id.nav_next:
+                            fragment = new NextMatches();
+                            fragmentTransition(fragment);
+                            return true;
 
-            Fragment fragment;
-            switch (item.getItemId()) {
-                case R.id.nav_match:
-                    fragment = new Matches();
-                    fragmentTransition(fragment);
-                    return true;
-                case R.id.nav_teams:
-                    fragment = new Teams();
-                    fragmentTransition(fragment);
-                    return true;
-                case R.id.nav_nav_fav:
-                    fragment = new Favorites();
-                    fragmentTransition(fragment);
-                    return true;
+                        case R.id.nav_teams:
+                            fragment = new Teams();
+                            fragmentTransition(fragment);
+                            return true;
+
+                        case R.id.nav_nav_fav:
+                            fragment = new Favorites();
+                            fragmentTransition(fragment);
+                            return true;
+                    }
+                return false;
             }
-            return false;
-        }
-    };
+        });
+    }
 
     private void fragmentTransition(Fragment fragment) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.container_fragment, fragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.container_fragment, fragment).commit();
     }
+
 }
